@@ -1,0 +1,6 @@
+Revision history for Perl extension Mcache.
+
+0.01  Mon Jan 18 13:17:24 2011
+
+0.02  Mon Apr 11 14:45:17 2011
+	Update methods for fast rebuild cache.
