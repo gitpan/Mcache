@@ -8,15 +8,16 @@ use Test::More tests => 2;
 
 my $cache = Mcache->new();
 $cache->add("string 10",1);
-$cache->add("string 20",1);
-my $k = $cache->add("string 30",1);
+my $k1 = $cache->add("string 20",1);
+my $k2 = $cache->add("string 30",1);
 $cache->add("string 40",1);
 my $sel1 = $cache->count(1);
-$cache->del(1,$k);
+$cache->del(1,"$k1");
+$cache->del(1,"$k2");
 my $sel2 = $cache->count(1);
 
 ok ( $sel1 == 4 );
-ok ( $sel2 == 3 );
+ok ( $sel2 == 2 );
 
 #########################
 

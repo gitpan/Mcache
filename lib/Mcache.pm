@@ -8,9 +8,9 @@ require Exporter;
 
 our @ISA = qw(Exporter);
 
-our @EXPORT = qw(new get add del update count);
+our @EXPORT = qw(new get add del update count id);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 ###################
 
@@ -39,28 +39,34 @@ sub add {
     my $key;
     if ($in[1]) {
 	if ($in[2]) {
-	    $key = $in[2];
+	    $key = "$in[2]";
 	}
 	else {
 	    # generate unique KEY
-	    $key = $in[1]."-".rand(1000000)."-".time."-".rand(314159265);
+	    $key = "$in[1]"."-".rand(1000000)."-".time."-".rand(314159265);
 	}
-	$self->{$in[1]}->{$key} = $in[0];
+	$self->{$in[1]}->{"$key"} = "\"key\": \"$key\", ".$in[0];
 
-	my $str = "list:[";
+	my $str = "\"list\": [";
 	my $count = 0;
+	my $rndid = rand(314159265);
 	foreach my $d (sort keys %{$self->{$in[1]}}) {
 	    if ($d eq 'CACHE') {next;}
 	    if ($d eq 'STAT') {next;}
-	    $str = $str."{".$self->{$in[1]}->{$d}."},";
+	    if ($d eq 'ID') {next;}
+	    $str = $str." {".$self->{$in[1]}->{$d}."},";
 	    ++$count;
+	    $rndid = $rndid + rand(314159265);
 	}
 	chop($str);
-	$str = $str."], count: $count";
+	$str = $str."], \"count\": \"$count\"";
 	$self->{$in[1]}->{'CACHE'} = $str;
 	$self->{$in[1]}->{'STAT'} = $count;
+	$self->{$in[1]}->{'ID'} = $rndid;
 	undef $str;
+	undef $rndid;
 	undef @in;
+
 
 	return $key;
     }
@@ -72,24 +78,34 @@ sub add {
 sub update {
     my $self = shift;
     my @in = @_;
+    my $key;
     if ($in[2]) {
+        $key = "$in[2]";
 	if (exists $self->{$in[1]}->{$in[2]}) {
-	    $self->{$in[1]}->{$in[2]} = $in[0];
+	    $self->{$in[1]}->{$in[2]} = "\"key\": \"$key\", ".$in[0];
 
-	    my $str = "list:[";
+	    my $str = "\"list\": [";
 	    my $count = 0;
+	    my $rndid = rand(314159265);
 	    foreach my $d (sort keys %{$self->{$in[1]}}) {
 		if ($d eq 'CACHE') {next;}
 		if ($d eq 'STAT') {next;}
-		$str = $str."{".$self->{$in[1]}->{$d}."},";
+		if ($d eq 'ID') {next;}
+		$str = $str." {".$self->{$in[1]}->{$d}."},";
 		++$count;
+		$rndid = $rndid + rand(314159265);
 	    }
 	    chop($str);
-	    $str = $str."], count: $count";
+	    $str = $str."], \"count\": \"$count\"";
 	    $self->{$in[1]}->{'CACHE'} = $str;
 	    $self->{$in[1]}->{'STAT'} = $count;
+	    $self->{$in[1]}->{'ID'} = $rndid;
 	    undef $str;
+	    undef $rndid;
 	    undef @in;
+	}
+	else {
+#	    add(@in);
 	}
     }
 }
@@ -97,30 +113,34 @@ sub update {
 sub del {
     my $self = shift;
     my @in = @_;
-    my $key;
     if ($in[1]) {
 	if (exists $self->{$in[0]}->{$in[1]}) {
 	    delete($self->{$in[0]}->{$in[1]});
-	    print "del\n";
+#	    print "del: $in[1]\n";
 	}
 	else {
-	    print "no del\n";
-	    return 0;
+#	    print "no del\n";
 	}
 
-	my $str = "list:[";
+
+	my $str = "\"list\": [";
 	my $count = 0;
+	my $rndid = rand(314159265);
 	foreach my $d (sort keys %{$self->{$in[0]}}) {
 	    if ($d eq 'CACHE') {next;}
 	    if ($d eq 'STAT') {next;}
-	    $str = $str."{".$self->{$in[0]}->{$d}."},";
+	    if ($d eq 'ID') {next;}
+	    $str = $str." {(-".$d."-)".$self->{$in[0]}->{$d}."},";
 	    ++$count;
+	    $rndid = $rndid + rand(314159265);
 	}
 	chop($str);
-	$str = $str."], count: $count";
+	$str = $str."], \"count\": \"$count\"";
 	$self->{$in[0]}->{'CACHE'} = $str;
 	$self->{$in[0]}->{'STAT'} = $count;
+	$self->{$in[0]}->{'ID'} = $rndid;
 	undef $str;
+	undef $rndid;
 	undef @in;
 
 	return 1;
@@ -133,24 +153,25 @@ sub del {
 sub get {
     my $self = shift;
     my @in = @_;
+    my $key;
     if ($in[1]) {
 	my $r = $self->{$in[0]}->{$in[1]};
 	if (!$r) {
-	    $r = "key:undef";
+	    $r = "\"key\": \"undef\"";
 	}
 	return $r;
     }
     elsif($in[0]) {
 	my $r = $self->{$in[0]}->{'CACHE'};
 	if (!$r) {
-	    return "id:null";
+	    return "\"id\": \"null\"";
 	}
 	else {
 	    return $r;
 	}
     }
     else {
-	return "id:undef";
+	return "\"id\": \"undef\"";
     }
 }
 
@@ -160,6 +181,14 @@ sub count {
     my @in = @_;
     if ($in[0]) {
 	return 	$self->{$in[0]}->{'STAT'};
+    }
+}
+
+sub id {
+    my $self = shift;
+    my @in = @_;
+    if ($in[0]) {
+	return 	$self->{$in[0]}->{'ID'};
     }
 }
 
@@ -214,6 +243,8 @@ __END__
     update(field,id,key); # update fields
 
     count(id); # count fields on data page id
+    
+    id(id); # current id for update
 
 =head1 AUTHOR
 

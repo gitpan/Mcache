@@ -16,6 +16,7 @@ Mcache version 0.02
     del(id,key); # delete fields
     update(field,id,key); # update fields
     count(id); # count fields on data page id
+    id(id); # current id for update
 
 INSTALLATION
 
