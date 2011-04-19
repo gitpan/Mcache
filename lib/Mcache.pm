@@ -10,7 +10,7 @@ our @ISA = qw(Exporter);
 
 our @EXPORT = qw(new get add del update count id);
 
-our $VERSION = '0.03';
+our $VERSION = '0.031';
 
 ###################
 
@@ -43,7 +43,7 @@ sub add {
 	}
 	else {
 	    # generate unique KEY
-	    $key = "$in[1]"."-".rand(1000000)."-".time."-".rand(314159265);
+	    $key = "$in[1]"."-".rand(1000000)."-".time."-".rand(3141592652);
 	}
 	$self->{$in[1]}->{"$key"} = "\"key\": \"$key\", ".$in[0];
 
@@ -222,9 +222,6 @@ __END__
     Mcache - program cache (DB) for storing in the memory pages 
     with editable set of fields. Issuance result holds in the JSON 
     
-    id - unique page number
-    
-    key - unique field number
 
 =head2 EXPORT
 
@@ -246,9 +243,14 @@ __END__
     
     id(id); # current id for update
 
+
+    var:
+	    id - unique page number
+	    key - unique field number
+
 =head1 AUTHOR
 
-Maxim Motylkov, E: motylkov@yandex.ru
+Maxim Motylkov, E: mmv@cpan.org
 
 =head1 COPYRIGHT AND LICENSE
 
